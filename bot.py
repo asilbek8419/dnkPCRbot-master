@@ -2,18 +2,15 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.client.session.aiohttp import AiohttpSession
-from aiogram.client.session.base import BaseSession
-from fpdf import FPDF
+from tabulate import tabulate
 import tempfile
 import asyncio
-import os  # Импортируем os для работы с переменными окружения
+import os
 
-# Получаем токен из переменных окружения (удалить)
+# Получаем токен из переменных окружения
 token = os.getenv("BOT_TOKEN")
 
 if not token:
@@ -28,8 +25,15 @@ storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
 # Глобальные переменные для хранения данных
-researches = {}  # Хранит данные для нескольких исследований
+researches = {}
 rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
+
+# Клавиатура с командами
+main_keyboard = ReplyKeyboardMarkup([
+    [KeyboardButton("/add_objects - добавить объекты на плашку"), KeyboardButton("/show_researches - показать активные исследования")],
+    [KeyboardButton("/new_research - начать новое исследование"), KeyboardButton("/close_research - завершить исследование")],
+    [KeyboardButton("/print_plate - вывести плашку в PDF")]
+], resize_keyboard=True)
 
 # Определение состояний
 class ResearchStates(StatesGroup):
@@ -40,12 +44,8 @@ class ResearchStates(StatesGroup):
 
 def display_plate_as_table(plate):
     """Функция для отображения плашки в табличном формате."""
-    column_width = 8  # Определяем фиксированную ширину для каждой ячейки
-    table = "|   | " + " | ".join(f"{i+1:^{column_width}}" for i in range(12)) + " |\n"
-    table += "|---" + ("|---" * 12) + "|\n"
-    for i, row in enumerate(rows):
-        row_data = " | ".join(f"{plate[i][j]:^{column_width}}" if plate[i][j] else "-".center(column_width) for j in range(12))
-        table += f"| {row} | {row_data} |\n"
+    table_data = [[cell if cell else "-" for cell in row] for row in plate]
+    table = tabulate(table_data, headers=[str(i + 1) for i in range(12)], tablefmt="grid", showindex=rows)
     return table
 
 def add_objects_to_plate(plate, expertise, object_count, object_numbers):
@@ -80,13 +80,8 @@ def generate_pdf(plate_text):
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
     await message.answer(
-        "Привет! Я бот для управления 96-луночной плашкой.\n"
-        "Команды:\n"
-        "/new_research - начать новое исследование\n"
-        "/add_objects - добавить объекты на плашку\n"
-        "/show_researches - показать активные исследования\n"
-        "/close_research - завершить исследование\n"
-        "/print_plate - вывести плашку в PDF"
+        "Привет! Я бот для управления 96-луночной плашкой. Выберите действие:",
+        reply_markup=main_keyboard
     )
 
 @dp.message(Command("new_research"))
@@ -147,7 +142,7 @@ async def show_researches_command(message: types.Message):
     response = "Активные исследования:\n"
     for research_name, plate in researches.items():
         response += f"\nИсследование: {research_name}\n"
-        response += display_plate_as_table(plate)
+        response += display_plate_as_table(plate) + "\n"
     await message.answer(f"<pre>{response}</pre>", parse_mode="HTML")
 
 @dp.message(Command("close_research"))
