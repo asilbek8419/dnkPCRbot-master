@@ -30,9 +30,9 @@ rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
 
 # Клавиатура с командами
 main_keyboard = ReplyKeyboardMarkup([
-    [KeyboardButton("/add_objects - добавить объекты на плашку"), KeyboardButton("/show_researches - показать активные исследования")],
-    [KeyboardButton("/new_research - начать новое исследование"), KeyboardButton("/close_research - завершить исследование")],
-    [KeyboardButton("/print_plate - вывести плашку в PDF")]
+    [KeyboardButton("/add_objects"), KeyboardButton("/show_researches")],
+    [KeyboardButton("/new_research"), KeyboardButton("/close_research")],
+    [KeyboardButton("/print_plate")]
 ], resize_keyboard=True)
 
 # Определение состояний
