@@ -6,11 +6,12 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from tabulate import tabulate
+from fpdf import FPDF
 import tempfile
 import asyncio
 import os
 
-# Получаем токен из переменных окружения 
+# Получаем токен из переменных окружения
 token = os.getenv("BOT_TOKEN")
 
 if not token:
@@ -29,14 +30,11 @@ researches = {}
 rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
 
 # Клавиатура с командами
-main_keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="/add_objects"), KeyboardButton(text="/show_researches")],
-        [KeyboardButton(text="/new_research"), KeyboardButton(text="/close_research")],
-        [KeyboardButton(text="/print_plate")]
-    ],
-    resize_keyboard=True
-)
+main_keyboard = ReplyKeyboardMarkup([
+    [KeyboardButton(text="/add_objects"), KeyboardButton(text="/show_researches")],
+    [KeyboardButton(text="/new_research"), KeyboardButton(text="/close_research")],
+    [KeyboardButton(text="/print_plate")]
+], resize_keyboard=True)
 
 # Определение состояний
 class ResearchStates(StatesGroup):
@@ -189,8 +187,11 @@ async def process_print_plate(message: types.Message, state: FSMContext):
     plate_text = display_plate_as_table(plate)
     file_path = generate_pdf(plate_text)
     await state.clear()
-    with open(file_path, "rb") as pdf_file:
-        await message.answer_document(pdf_file)
+    try:
+        with open(file_path, "rb") as pdf_file:
+            await message.answer_document(pdf_file, caption=f"Плашка для исследования '{research_name}'")
+    except Exception as e:
+        await message.answer("Ошибка при отправке PDF файла. Попробуйте снова.")
 
 async def main():
     async with bot:
