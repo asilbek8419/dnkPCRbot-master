@@ -92,11 +92,12 @@ def create_main_menu():
 
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
-    keyboard = create_main_menu()
+    """Обработчик команды /start."""
+    keyboard = create_main_menu()  # Создаём клавиатуру
     await message.answer(
         "Привет! Я бот для управления 96-луночной плашкой.\n"
         "Выберите команду с помощью кнопок ниже:",
-        reply_markup=keyboard
+        reply_markup=keyboard  # Передаём клавиатуру в ответ
     )
 
 @dp.message(Command("new_research"))
