@@ -30,11 +30,14 @@ researches = {}
 rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
 
 # Клавиатура с командами
-main_keyboard = ReplyKeyboardMarkup([
-    [KeyboardButton(text="/add_objects"), KeyboardButton(text="/show_researches")],
-    [KeyboardButton(text="/new_research"), KeyboardButton(text="/close_research")],
-    [KeyboardButton(text="/print_plate")]
-], resize_keyboard=True)
+main_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="/add_objects"), KeyboardButton(text="/show_researches")],
+        [KeyboardButton(text="/new_research"), KeyboardButton(text="/close_research")],
+        [KeyboardButton(text="/print_plate")]
+    ],
+    resize_keyboard=True
+)
 
 # Определение состояний
 class ResearchStates(StatesGroup):
