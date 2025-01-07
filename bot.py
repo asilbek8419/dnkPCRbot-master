@@ -10,7 +10,7 @@ import tempfile
 import asyncio
 import os
 
-# Получаем токен из переменных окружения
+# Получаем токен из переменных окружения 
 token = os.getenv("BOT_TOKEN")
 
 if not token:
