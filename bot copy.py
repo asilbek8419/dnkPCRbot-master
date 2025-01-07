@@ -11,13 +11,13 @@ from aiogram.client.session.base import BaseSession
 from fpdf import FPDF
 import tempfile
 import asyncio
-import os
+import os  # Импортируем os для работы с переменными окружения
 
-# Ваш токен Telegram Bot API
+# Получаем токен из переменных окружения (удалить)
 token = os.getenv("BOT_TOKEN")
 
 if not token:
-    raise ValueError("Необходимо установить переменную окружения TELEGRAM_TOKEN.")
+    raise ValueError("Необходимо установить переменную окружения BOT_TOKEN.")
 
 # Настройка логгирования
 logging.basicConfig(level=logging.INFO)
@@ -77,26 +77,16 @@ def generate_pdf(plate_text):
     pdf.output(file_path)
     return file_path
 
-def create_main_menu():
-    """Создание клавиатуры с активными командами."""
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    buttons = [
-        KeyboardButton("/new_research"),
-        KeyboardButton("/add_objects"),
-        KeyboardButton("/show_researches"),
-        KeyboardButton("/close_research"),
-        KeyboardButton("/print_plate")
-    ]
-    keyboard.add(*buttons)
-    return keyboard
-
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
-    keyboard = create_main_menu()
     await message.answer(
         "Привет! Я бот для управления 96-луночной плашкой.\n"
-        "Выберите команду с помощью кнопок ниже:",
-        reply_markup=keyboard
+        "Команды:\n"
+        "/new_research - начать новое исследование\n"
+        "/add_objects - добавить объекты на плашку\n"
+        "/show_researches - показать активные исследования\n"
+        "/close_research - завершить исследование\n"
+        "/print_plate - вывести плашку в PDF"
     )
 
 @dp.message(Command("new_research"))
