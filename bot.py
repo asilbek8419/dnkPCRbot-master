@@ -62,15 +62,15 @@ def add_objects_to_plate(plate, expertise, object_count, object_numbers):
                     plate[i][j] = f"{expertise}-{object_numbers[index]}"
                     index += 1
                 else:
-                    return "Объекты успешно добавлены."
-    return "Плашка заполнена, не удалось добавить все объекты."
+                    return "Объектлар муваффаққиятли юкланди."
+    return "Плашка тўла, объектларни қўшиш имкони бўлмади."
 
 def generate_pdf(plate_text):
     """Функция для генерации PDF с плашкой."""
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="96-луночная плашка", ln=True, align="C")
+    pdf.cell(200, 10, txt="96-лункали плашка", ln=True, align="C")
     pdf.ln(10)
 
     for line in plate_text.split("\n"):
@@ -84,36 +84,36 @@ def generate_pdf(plate_text):
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
     await message.answer(
-        "Привет! Я бот для управления 96-луночной плашкой. Выберите действие:",
+        "Ассалому алейкум! Мен 96-лункали плашкани бошқариш ботиман. Амални танланг:",
         reply_markup=main_keyboard
     )
 
 @dp.message(Command("new_research"))
 async def new_research_command(message: types.Message, state: FSMContext):
-    await message.answer("Введите название нового исследования:")
+    await message.answer("Янги тадқиқот номини ёзинг:")
     await state.set_state(ResearchStates.waiting_for_research_name)
 
 @dp.message(ResearchStates.waiting_for_research_name)
 async def set_research_name(message: types.Message, state: FSMContext):
     research_name = message.text.strip()
     if research_name in researches:
-        await message.answer("Исследование с таким названием уже существует. Попробуйте другое название.")
+        await message.answer("Бундай тадқиқот номи мавжуд. Бошқа ном киритинг.")
         return
 
     researches[research_name] = [["" for _ in range(12)] for _ in range(8)]
     await state.clear()
-    await message.answer(f"Новое исследование '{research_name}' начато.")
+    await message.answer(f"Янги тадқиқот '{research_name}' бошланди.")
 
 @dp.message(Command("add_objects"))
 async def add_objects_command(message: types.Message):
     if not researches:
-        await message.answer("Нет активных исследований. Сначала создайте исследование с помощью команды /new_research.")
+        await message.answer("Актив тадқиқотлар йўқ. Аввало янги тадқиқотни қўйидаги команда орқали бошланг /new_research.")
         return
 
     await message.answer(
-        "Введите данные в формате:\n"
-        "<название исследования> <номер экспертизы> <количество объектов> <номера объектов через запятую>\n"
-        "Пример: VersaPlex 16654 3 1,5,6"
+        "Маълумотларни қўйидаги форматда киритинг:\n"
+        "<Тадқиқот номи> <экспертиза рақами> <объектлар сони> <объектлар номи вергуль билан>\n"
+        "Мисол: Верса AN16654 3 K1,C5,L6"
     )
 
 @dp.message(lambda message: len(message.text.split()) >= 4)
@@ -124,66 +124,66 @@ async def process_add_objects(message: types.Message):
         object_numbers = object_numbers.split(",")
 
         if research_name not in researches:
-            await message.answer("Такого исследования не существует. Проверьте название.")
+            await message.answer("Бундай тадқиқот мавжуд эмас. Тадқиқот номини текширинг.")
             return
 
         if len(object_numbers) != object_count:
-            await message.answer("Количество объектов не совпадает с указанным числом.")
+            await message.answer("Объектлар сони келтирилган рақамга тўғри келмади.")
             return
 
         plate = researches[research_name]
         response = add_objects_to_plate(plate, expertise, object_count, object_numbers)
         await message.answer(response)
     except Exception as e:
-        await message.answer("Ошибка: проверьте формат ввода данных.")
+        await message.answer("ХАТО: маълумотларни киритиш тартибини текширинг.")
 
 @dp.message(Command("show_researches"))
 async def show_researches_command(message: types.Message):
     if not researches:
-        await message.answer("Нет активных исследований.")
+        await message.answer("Актив тадқиқотлар йўқ.")
         return
 
-    response = "Активные исследования:\n"
+    response = "Актив тадқиқотлар:\n"
     for research_name, plate in researches.items():
-        response += f"\nИсследование: {research_name}\n"
+        response += f"\nТадқиқот: {research_name}\n"
         response += display_plate_as_table(plate) + "\n"
     await message.answer(f"<pre>{response}</pre>", parse_mode="HTML")
 
 @dp.message(Command("close_research"))
 async def close_research_command(message: types.Message, state: FSMContext):
     if not researches:
-        await message.answer("Нет активных исследований.")
+        await message.answer("Актив тадқиқотлар йўқ.")
         return
 
-    await message.answer("Введите название исследования, которое хотите завершить:")
+    await message.answer("Тугатилаётган тадқиқот номини ёзинг:")
     await state.set_state(ResearchStates.waiting_for_research_to_close)
 
 @dp.message(ResearchStates.waiting_for_research_to_close)
 async def process_close_research(message: types.Message, state: FSMContext):
     research_name = message.text.strip()
     if research_name not in researches:
-        await message.answer("Такого исследования не существует. Проверьте название.")
+        await message.answer("Бундай тадқиқот мавжуд эмас. Тадқиқот номини текширинг.")
         return
 
     plate = researches.pop(research_name)
     plate_text = display_plate_as_table(plate)
     await state.clear()
-    await message.answer(f"Исследование '{research_name}' завершено. Итоговая плашка:\n<pre>{plate_text}</pre>", parse_mode="HTML")
+    await message.answer(f"Тадқиқот '{research_name}' тугатилди. Якуний плашка:\n<pre>{plate_text}</pre>", parse_mode="HTML")
 
 @dp.message(Command("print_plate"))
 async def print_plate_command(message: types.Message, state: FSMContext):
     if not researches:
-        await message.answer("Нет активных исследований для печати.")
+        await message.answer("Чоп этишга актив тадқиқотлар мавжуд эмас.")
         return
 
-    await message.answer("Введите название исследования для печати:")
+    await message.answer("Чоп этиладиган тадқиқот номини ёзинг:")
     await state.set_state(ResearchStates.waiting_for_research_to_print)
 
 @dp.message(ResearchStates.waiting_for_research_to_print)
 async def process_print_plate(message: types.Message, state: FSMContext):
     research_name = message.text.strip()
     if research_name not in researches:
-        await message.answer("Такого исследования не существует. Проверьте название.")
+        await message.answer("Бундай тадқиқот мавжуд эмас. Тадқиқот номини текширинг.")
         return
 
     plate = researches[research_name]
@@ -192,9 +192,9 @@ async def process_print_plate(message: types.Message, state: FSMContext):
     await state.clear()
     try:
         with open(file_path, "rb") as pdf_file:
-            await message.answer_document(pdf_file, caption=f"Плашка для исследования '{research_name}'")
+            await message.answer_document(pdf_file, caption=f"Тадқиқот плашкаси '{research_name}'")
     except Exception as e:
-        await message.answer("Ошибка при отправке PDF файла. Попробуйте снова.")
+        await message.answer("PDFга юклашда хатолик мавжуд. Яна бир уриниб куринг.")
 
 async def main():
     async with bot:
