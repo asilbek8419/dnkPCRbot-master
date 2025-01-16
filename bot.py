@@ -32,9 +32,9 @@ rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
 # Клавиатура с командами
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="/add_objects"), KeyboardButton(text="/show_researches")],
-        [KeyboardButton(text="/new_research"), KeyboardButton(text="/close_research")],
-        [KeyboardButton(text="/print_plate")]
+        [KeyboardButton(text="/obyekt_qushish"), KeyboardButton(text="/tadqiqotlarni_kurish")],
+        [KeyboardButton(text="/yangi_tadqiqot"), KeyboardButton(text="/tadqiqotni_yakunlash")],
+        [KeyboardButton(text="/plashkani_chop_etish")]
     ],
     resize_keyboard=True
 )
@@ -52,7 +52,7 @@ def display_plate_as_table(plate):
     table = tabulate(table_data, headers=[str(i + 1) for i in range(12)], tablefmt="grid", showindex=rows)
     return table
 
-def add_objects_to_plate(plate, expertise, object_count, object_numbers):
+def obyekt_qushish_to_plate(plate, expertise, object_count, object_numbers):
     """Функция для добавления объектов на плашку по вертикали."""
     index = 0
     for j in range(12):  # Столбцы 1-12
@@ -88,8 +88,8 @@ async def start_command(message: types.Message):
         reply_markup=main_keyboard
     )
 
-@dp.message(Command("new_research"))
-async def new_research_command(message: types.Message, state: FSMContext):
+@dp.message(Command("yangi_tadqiqot"))
+async def yangi_tadqiqot_command(message: types.Message, state: FSMContext):
     await message.answer("Янги тадқиқот номини ёзинг:")
     await state.set_state(ResearchStates.waiting_for_research_name)
 
@@ -104,10 +104,10 @@ async def set_research_name(message: types.Message, state: FSMContext):
     await state.clear()
     await message.answer(f"Янги тадқиқот '{research_name}' бошланди.")
 
-@dp.message(Command("add_objects"))
-async def add_objects_command(message: types.Message):
+@dp.message(Command("obyekt_qushish"))
+async def obyekt_qushish_command(message: types.Message):
     if not researches:
-        await message.answer("Актив тадқиқотлар йўқ. Аввало янги тадқиқотни қўйидаги команда орқали бошланг /new_research.")
+        await message.answer("Актив тадқиқотлар йўқ. Аввало янги тадқиқотни қўйидаги команда орқали бошланг /yangi_tadqiqot.")
         return
 
     await message.answer(
@@ -117,7 +117,7 @@ async def add_objects_command(message: types.Message):
     )
 
 @dp.message(lambda message: len(message.text.split()) >= 4)
-async def process_add_objects(message: types.Message):
+async def process_obyekt_qushish(message: types.Message):
     try:
         research_name, expertise, object_count, object_numbers = message.text.split(maxsplit=3)
         object_count = int(object_count)
@@ -132,13 +132,13 @@ async def process_add_objects(message: types.Message):
             return
 
         plate = researches[research_name]
-        response = add_objects_to_plate(plate, expertise, object_count, object_numbers)
+        response = obyekt_qushish_to_plate(plate, expertise, object_count, object_numbers)
         await message.answer(response)
     except Exception as e:
         await message.answer("ХАТО: маълумотларни киритиш тартибини текширинг.")
 
-@dp.message(Command("show_researches"))
-async def show_researches_command(message: types.Message):
+@dp.message(Command("tadqiqotlarni_kurish"))
+async def tadqiqotlarni_kurish_command(message: types.Message):
     if not researches:
         await message.answer("Актив тадқиқотлар йўқ.")
         return
@@ -149,8 +149,8 @@ async def show_researches_command(message: types.Message):
         response += display_plate_as_table(plate) + "\n"
     await message.answer(f"<pre>{response}</pre>", parse_mode="HTML")
 
-@dp.message(Command("close_research"))
-async def close_research_command(message: types.Message, state: FSMContext):
+@dp.message(Command("tadqiqotni_yakunlash"))
+async def tadqiqotni_yakunlash_command(message: types.Message, state: FSMContext):
     if not researches:
         await message.answer("Актив тадқиқотлар йўқ.")
         return
@@ -159,7 +159,7 @@ async def close_research_command(message: types.Message, state: FSMContext):
     await state.set_state(ResearchStates.waiting_for_research_to_close)
 
 @dp.message(ResearchStates.waiting_for_research_to_close)
-async def process_close_research(message: types.Message, state: FSMContext):
+async def process_tadqiqotni_yakunlash(message: types.Message, state: FSMContext):
     research_name = message.text.strip()
     if research_name not in researches:
         await message.answer("Бундай тадқиқот мавжуд эмас. Тадқиқот номини текширинг.")
@@ -170,8 +170,8 @@ async def process_close_research(message: types.Message, state: FSMContext):
     await state.clear()
     await message.answer(f"Тадқиқот '{research_name}' тугатилди. Якуний плашка:\n<pre>{plate_text}</pre>", parse_mode="HTML")
 
-@dp.message(Command("print_plate"))
-async def print_plate_command(message: types.Message, state: FSMContext):
+@dp.message(Command("plashkani_chop_etish"))
+async def plashkani_chop_etish_command(message: types.Message, state: FSMContext):
     if not researches:
         await message.answer("Чоп этишга актив тадқиқотлар мавжуд эмас.")
         return
@@ -180,7 +180,7 @@ async def print_plate_command(message: types.Message, state: FSMContext):
     await state.set_state(ResearchStates.waiting_for_research_to_print)
 
 @dp.message(ResearchStates.waiting_for_research_to_print)
-async def process_print_plate(message: types.Message, state: FSMContext):
+async def process_plashkani_chop_etish(message: types.Message, state: FSMContext):
     research_name = message.text.strip()
     if research_name not in researches:
         await message.answer("Бундай тадқиқот мавжуд эмас. Тадқиқот номини текширинг.")
